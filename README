@@ -1,0 +1,2 @@
+1> Deploy "ctjava.ddl" to "/etc/mcollective/mcollective/agent/"
+2> Deploy "form.py" and "utils.py" to "/usr/share/kermit-webui/webui/agent/"
