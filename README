@@ -1,3 +1,6 @@
 1> Deploy "ctjava.ddl" to "/etc/mcollective/mcollective/agent/"
 2> Deploy "form.py" and "utils.py" to "/usr/share/kermit-webui/webui/agent/"
 3> Restart "cerelyd" as well as other required "services/daemon".
+4> Kermit-webui structure: usr/share/kermit-webui.
+5> Lib structure: usr/local/mcollective-1.2.1/lib/ ---->  /usr/local/mcollective-1.2.1/lib/mcollective/agent.
+6> Mcollective structure: /etc/mcollective/mcollective/ ----> /etc/mcollective/mcollective/agent.

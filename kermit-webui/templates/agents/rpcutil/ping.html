@@ -1,0 +1,72 @@
+{% load i18n %}
+<style type="text/css">
+table.serverstatus {
+border-width: 2px;
+border-spacing: 2px;
+border-style: outset;
+border-color: gray;
+border-collapse: collapse;
+background-color: white;
+width: 100%;
+}
+table.serverstatus th {
+font-size: 12px;
+font-family: Verdana, Arial, Helvetica, sans-serif;
+font-weight: bold;
+color: #000;
+}
+table.serverstatus tr.even {
+background: #CCCCCC;
+}
+table.serverstatus tr.odd {
+background: #F0F0F0
+}
+</style>
+<script>
+	$(document).ready(function() {
+        $('#responsedata').dataTable();
+    });
+</script>
+
+<h3><b>{% trans 'Response from'%} {{agent}} - {{action}}</b></h3>
+<br/>
+<div>
+	<table id="responsedata" class="serverstatus">
+		<thead>
+			<th>{% trans 'Server'%}</th>
+			<th>{% trans 'Status'%}</th>
+			<th>{% trans 'Message'%}</th>
+			<th>{% trans 'Response'%}</th>
+		</thead>
+			
+		<tbody>
+				
+{% for resp in content %}
+		<tr>
+			<td>
+				{{resp.sender}}
+			</td>
+			<td>
+				{% if resp.statuscode == 0 %}
+					<img src="{{settings.STATIC_URL}}images/icons/ok.png" style="height: 16px;"/>
+				{% else %}
+					<img src="{{settings.STATIC_URL}}images/icons/ko.png" style="height: 16px;"/>
+				{% endif %}
+			</td> 
+			<td>
+				{% if resp.statuscode == 0 %}
+				 &nbsp;
+				 {% else %}
+				 	{{resp.statusmsg}}
+				 {% endif %}
+			</td>
+			<td>
+				{% for content,data in resp.data.items %}
+					<b>{% trans 'Response Time'%}</b>: {{data}} <br>
+				{% endfor %}	
+			</td>
+		</tr>
+{% endfor %}
+		</tbody>
+	</table>
+</div>
