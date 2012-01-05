@@ -1,0 +1,13 @@
+{% load i18n %}
+
+<img class="introicon" src="{{static_url}}images/icons/manager.png"/>
+<div class="infohighlight">
+	<strong>{% trans 'Node Manager Name' %}</strong>: {{nodemanager.name}} <br/>
+	{% for man in nodemanager.node_manager%}
+	<strong>{% trans 'Listen Address' %}</strong>: {{man.listen_address}} <br/>
+	<strong>{% trans 'Listen Port' %}</strong>: {{man.listen_port}} <br/>
+	<strong>{% trans 'NM-Type' %}</strong>: {{man.nm_type}} <br/>
+	<br/>
+	{% endfor%}
+</div>
+<br/>

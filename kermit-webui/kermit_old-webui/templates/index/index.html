@@ -1,0 +1,28 @@
+{% extends "theme/meta.html" %}
+{% load widgets %}
+{% load i18n %}
+
+{% block navbar %}{% endblock %}
+
+{% block breadcrumbs %}
+<div id="breadcrumbs">
+	<a href="{{settings.BASE_URL}}/">{% trans 'Home' %}</a>{% if title %} &rsaquo; {{ title }}{% endif %}
+</div>
+{% endblock %}
+
+{% block bodyclass %}dashboard{% endblock %}
+
+{% block content %}
+<br/>
+<div id="columns">
+	{% for column_id, content in widgets.items%}
+	<ul id="column{{column_id}}" class="column">
+		{% for current_widget in content%}
+		{% widget current_widget.name user %}
+		{% endfor %}
+		&nbsp;<br/>&nbsp;<br/>
+	</ul>
+	{% endfor %}
+</div>
+
+{% endblock %} 

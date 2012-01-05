@@ -1,0 +1,152 @@
+{% extends "widgets/base_widget.html" %}
+{% load i18n %}
+
+{% block widget-extra-title %}{{hostname}}{% endblock %}
+
+{% block widget-content %}
+<script>
+	function getDetails(url, destination, selectedElement) {
+		$.ajax({
+			// The link we are accessing.
+			url : url,
+			// The type of request.
+			type : "get",
+			// The type of data that is getting returned.
+			dataType : "html",
+			error : function() {
+				//TODO: Show error message
+				$("#contextualAjaxSpinner").remove();
+			},
+			beforeSend : function() {
+				$(selectedElement).append("<img id='contextualAjaxSpinner' src='{{settings.STATIC_URL}}images/small-loader.gif'/>");
+			},
+			complete : function() {
+				$("#contextualAjaxSpinner").remove();
+			},
+			success : function(data) {
+				$("#" + destination).html(data);
+			}
+		});
+	}
+	
+	$(document).ready(function() {
+		$("#expandChildren").click(function() {
+			var node = $("#details-tree").dynatree("getActiveNode");
+			node.expand(true);
+			node.visit(function(child){
+			    child.expand(true);
+			});		
+		}).mouseover(function() { 
+            $(this).attr("src", "{{settings.STATIC_URL}}/images/expand_over.png");
+        })
+        .mouseout(function() {
+            $(this).attr("src", "{{settings.STATIC_URL}}/images/expand.png");
+        });
+		$("#compressChildren").click(function() {
+			var node = $("#details-tree").dynatree("getActiveNode");
+			node.visit(function(child){
+			    child.expand(false);
+			});		
+			node.expand(false);
+		}).mouseover(function() { 
+            $(this).attr("src", "{{settings.STATIC_URL}}/images/collapse_over.png");
+        })
+        .mouseout(function() {
+            $(this).attr("src", "{{settings.STATIC_URL}}/images/collapse.png");
+        });
+		$("#details-tree").dynatree({
+			persist: true,
+			title : "Server {{hostname}} Details",
+			imagePath:"{{settings.STATIC_URL}}images/servertree/",
+			fx : {
+				height : "toggle",
+				duration : 200
+			},
+			autoFocus : false, // Set focus to first child, when expanding or lazy-loading.
+			onCreate: function(node, span){
+				//if (node.data.type == 'instance') {
+					//bindContextMenu(span);
+				//}
+      		},
+			initAjax : {
+				url : "{{settings.BASE_URL}}/server/tree/{{hostname}}/",
+				data : {
+					mode : "funnyMode"
+				}
+			},
+
+			onQueryActivate : function(activate, node) {
+				
+				//        return false;
+			},
+			onActivate : function(node) {
+				
+			},
+			onDeactivate : function(node) {
+				logMsg("onDeactivate(%o)", node);
+			},
+			onQuerySelect : function(select, node) {
+				logMsg("onQuerySelect(%o, %o)", select, node);
+				if(node.data.isFolder)
+					return false;
+			},
+			onSelect : function(select, node) {
+				logMsg("onSelect(%o, %o)", node);
+			},
+			onQueryExpand : function(expand, node) {
+				logMsg("onQueryExpand(%o, %o)", expand, node);
+				//        return false;
+			},
+			onExpand : function(expand, node) {
+				logMsg("onExpand(%o, %o)", expand, node);
+			},
+			onFocus : function(node) {
+				logMsg("onFocus(%o)", node);
+				$("#echoFocused").text(node.data.title);
+				// Auto-activate focused node after 2 seconds
+				node.scheduleAction("activate", 2000);
+			},
+			onBlur : function(node) {
+				logMsg("onBlur(%o)", node);
+				$("#echoFocused").text("-");
+			},
+			onClick : function(node, event) {
+				logMsg("onClick(%o, %o)", node, event);
+				if (event.target.tagName == 'SPAN' && event.target.classList == 'dynatree-expander') {
+					//expand collpse
+				} else {
+					if (node.data.detailsEnabled == 'true') {
+						getDetails(node.data.url, 'actual-resource-details', event.target.parentNode);
+						return false;
+					}
+				}
+				return true;
+				// Close menu on click
+				//return false;
+			},
+			onDblClick : function(node, event) {
+				logMsg("onDblClick(%o, %o)", node, event);
+				node.toggleSelect();
+			},
+			onKeydown : function(node, event) {
+				logMsg("onKeydown(%o, %o)", node, event);
+				switch( event.which ) {
+					case 32:
+						// [space]
+						node.toggleSelect();
+						return false;
+				}
+			},
+			onKeypress : function(node, event) {
+				logMsg("onKeypress(%o, %o)", node, event);
+			}
+		});
+	});
+</script>
+<img id="expandChildren" src="{{settings.STATIC_URL}}/images/expand.png" width="24" height="24"/>
+<img id="compressChildren" src="{{settings.STATIC_URL}}/images/collapse.png" width="24" height="24"/>
+<div id="details-tree">
+	
+</div>
+<br/>
+{% endblock %} 

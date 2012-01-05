@@ -1,0 +1,46 @@
+{% load i18n %} <img class="introicon" src="{{static_url}}images/icons/application.png"/>
+<div class="infohighlight">
+	<strong>{{instance_id}}</strong>
+	<br/>
+	<strong>{% trans 'Server' %}</strong>: {{hostname}}
+	<br/>
+	<strong>{% trans 'Application Name' %}</strong>: {{application.name}}
+	<br/>
+	<strong>{% trans 'Application Version' %}</strong>: {{application.appliver.version}}
+	<br/>
+	<strong>{% trans 'Application Date' %}</strong>: {{application.appliver.versionDate}}
+	<br/>
+	<strong>{% trans 'Context' %}</strong>: {{application.root}}
+	<br/>
+	<strong>{% trans 'Load On Startup' %}</strong>: {{application.load_on_startup}}
+	<br/>
+</div>
+<br/>
+<div class="info">
+	<table class="server-details">
+		<thead>
+			<tr>
+				<th>{% trans 'Name' %}</th>
+				<th>{% trans 'Server' %}</th>
+				<th>{% trans 'Instance' %}</th>
+				<th>{% trans 'User' %}</th>
+				<th>{% trans 'Max-Connections' %}</th>
+				<th>{% trans 'Min-Connections' %}</th>
+				<th>{% trans 'Cached Statements' %}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for pool in application.poollist%}
+			<tr>
+				<td>{{pool.name}}</td>
+				<td>{{pool.datasource.bddserver}}</td>
+				<td>{{pool.datasource.bddinstance}}</td>
+				<td>{{pool.datasource.user}}</td>
+				<td>{{pool.datasource.max_connections}}</td>
+				<td>{{pool.datasource.min_connections}}</td>
+				<td>{{pool.datasource.num_cached_statements}}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>

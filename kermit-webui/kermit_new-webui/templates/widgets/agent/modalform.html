@@ -1,0 +1,134 @@
+<script>
+	$('html').ajaxSend(function(event, xhr, settings) {
+		if(!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+			// Only send the token to relative URLs i.e. locally.
+			xhr.setRequestHeader("X-CSRFToken", $("#csrfmiddlewaretoken").val());
+		}
+	});
+
+	$(document).ready(function() {
+		// prepare Options Object
+		var options = {
+			url : '{% url actionform agent action filters dialog_name response_container "xhr"%}', // Here we pass the xhr flag
+			dataType : 'json',
+			success : parseResponse, //What to call after a reply from Django
+			beforeSubmit : beforeForm
+		};
+		// bind form using ajaxForm
+		$('#tf').ajaxForm(options);
+		//My form id is 'tf'
+	});
+	
+	function parseResponse(data) {
+		if(data) {
+			// Build a var. NOTE: Make sure your id name (this is a div) is NOT THE SAME
+			// as any var in javascript -- ie has a fit and barfs errors.
+			e_msg = "We received your form, thank you.";
+			// Did we set the 'bad' flag in Django?
+			// Use eval() to turn the stuff in the data object into actual vars.
+			if(eval(data.bad)) {
+				e_msg = "Please check your form.";
+				errors = eval(data.errs);
+				//Again with the eval :)
+				// This is very nice: Go thru the errors, build an id name and
+				// then access that tag and add the HTML from the Django error
+				$.each(errors, function(fieldname, errmsg) {
+					id = "#id_" + fieldname;
+					$(id).parent().before(errmsg);
+					//I want the error above the <p> holding the field
+				});
+				// re-enable the submit button, coz user has to fix stuff.
+//				$('#bt').attr("disabled", "");
+			} else {
+				$("#" + data.response_container).empty();
+				$("#" + data.dialog_name).dialog('close');
+				$('#modalprogress').dialog({
+						modal : true,
+						title : 'Progress...',
+						height : 100,
+						width : 500
+				});
+				$( "#progressbar" ).progressbar({ value: 0 });
+				$( "#taskstate").html('<b>Waiting...	</b>');
+				$.get(data.update_url, function(response) {
+					var checkStatus = function() {
+						$.getJSON(data.update_url, function(result) {
+				    		$( "#progressbar").progressbar({ value: result.value });
+							$( "#taskstate").html('<b>' + result.state + '</b>');	
+					        if(result.state!='SUCCESS' && result.state!='FAILURE' && result.state!=undefined) {
+					            setTimeout(checkStatus, 2000);
+					        } else {
+					        	$("#" + data.response_container).empty();
+								if (result.type == 'json') {
+									for (i in result.response) {
+										resp = result.response[i];
+										content = '<strong>' + resp.sender + '</strong>';
+										content += '<ul>';
+										content += '<li> Status Code: ' + resp.statuscode + '</li>';
+										content += '<li> Status Message: ' + resp.statusmsg + '</li>';
+										content += '<li> Data: ' + JSON.stringify(resp.data) + '</li>';
+										content += '</ul>';
+										$(content).appendTo("#" + data.response_container);	
+									}
+								} else if (result.type == 'html') {
+									$("#" + data.response_container).html(result.response);	
+								}
+								if (result.state == 'FAILURE' && result.message == 'TIMEOUT') {
+									alert('Request Timeout');
+								}
+					        	$('#modalprogress').dialog('close');
+					        }
+				        // do something else
+		    		 	});
+					}
+					if (data.UUID) {
+						checkStatus();
+					} else {
+						if (data.error) {
+							$( "#taskstate").html(data.error);
+						}
+					}
+				});
+			}
+		} else {
+			//DON'T PANIC :D
+			$('#emsg').text("Ajax error : no data received. ").fadeIn("slow");
+		}
+	}
+
+	function beforeForm() {
+		//$('#bt').attr("disabled", "disabled");
+		//Disable the submit button - can't click twice
+		$('.errorlist').remove();
+		//Get rid of any old error uls
+		$('#emsg').empty();
+		$('#emsg').fadeOut('slow');
+		//$('#loading').show();
+		//Get rid of the main error message
+		return true;
+		//Might not need this...
+	}
+</script>
+<p>
+	Parameters required to execute {{agent}}-{{action}}
+</p>
+<div id="emsg">
+	&nbsp;
+</div>
+<form action="{% url actionform agent action filters dialog_name response_container None %}" method="post" id="tf">
+	{% csrf_token %}
+	<fieldset>
+		{% for field in form %}
+	        <div class="fieldWrapper">
+	            {{ field.errors }}
+	            {% if field.field.required %}
+	            <p><b>{{ field.label_tag }}</b>: {{ field }}</p>
+	            {% else %}
+	            <p>{{ field.label_tag }}: {{ field }}</p>
+	            {% endif %}
+	        </div>
+	    {% endfor %}
+		<br/>
+		<input class="input" type="submit" value="Execute" id="bt"/>
+	</fieldset>
+</form>
