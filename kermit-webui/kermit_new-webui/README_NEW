@@ -1,1 +1,17 @@
 1> mcollective -> /usr/libexec/mcollective/mcollective/
+2> For the new version you need to restart following:
+   
+   /sbin/chkconfig redis on
+   /etc/init.d/redis start
+
+   /sbin/chkconfig celeryd on
+   /etc/init.d/celeryd start
+
+   /sbin/chkconfig celerybeat on
+   /etc/init.d/celerybeat start
+
+   /sbin/chkconfig celeryev on
+   /etc/init.d/celeryev start
+
+3> touch /var/www/restmco/tmp/restart.txt 
+
